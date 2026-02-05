@@ -28,6 +28,7 @@ const experiences = [
     ],
     details:
       'Conception et mise en production d’une plateforme VTC haut de gamme, de l’architecture applicative à l’exploitation. Développement full-stack, intégration de services critiques (paiement, authentification, emails), mise en conformité RGPD et optimisation des performances. Approche orientée fiabilité, sécurité et exploitation réelle d’un service en conditions quasi-production.',
+    recommendationUrl: 'pdfs/JM_Lettres_de_Recommandation_DevFullStack.pdf',
   },
   {
     role: 'Animateur Enfance et Jeunesse',
@@ -54,6 +55,7 @@ const education = [
       'Formation spécialisée en cybersécurité, administration systèmes et réseaux, et défense des infrastructures critiques.',
     details:
       "Programme complet couvrant le développement (C, Python, Rust, assembleur x64), l'administration Linux avancée, la mise en place et sécurisation de réseaux (CCNA 1 & 2, WiFi, Blue Team, IDS), la cryptographie, la détection de vulnérabilités et la sécurité physique.\nSoft skills : communication, planification, cyberéthique.\nActivités : projets annuels, missions en entreprise, Security Day, MindBreak CTF, DefHack, préparation TOEIC.\nCompétences développées : conception et administration de systèmes-réseaux sécurisés, conduite de projets responsables, sécurisation d’infrastructures critiques.",
+    recommendationUrl: 'pdfs/JM_Lettre_Recommandation_Bachelor_ESGI.pdf',
   },
   {
     title: 'BTS CIEL - Cybersécurité, Informatique et Réseaux',
@@ -62,7 +64,8 @@ const education = [
     description:
       'Formation technique en cybersécurité, administration et exploitation de réseaux informatiques, développement et valorisation des données.',
     details:
-      'Programme centré sur la conception, l’exploitation et la maintenance de systèmes-réseaux sécurisés, le codage pour solutions informatiques, les audits, le traitement et la communication des incidents, ainsi que la sécurisation et le stockage des données sur bases dédiées.\nStages pratiques de 6 à 8 semaines en entreprise.\nSecteurs d’application : industrie 4.0/5.0, IoT, cybersécurité, télécommunications, informatique industrielle, transports, santé et défense.\nCompétences développées : conduite de projets informatiques, administration et sécurisation de réseaux, analyse de données, audits et valorisation des informations.',
+      "Programme centré sur la conception, l'exploitation et la maintenance de systèmes-réseaux sécurisés, le codage pour solutions informatiques, les audits, le traitement et la communication des incidents, ainsi que la sécurisation et le stockage des données sur bases dédiées.\nStages pratiques de 6 à 8 semaines en entreprise.\nSecteurs d'application : industrie 4.0/5.0, IoT, cybersécurité, télécommunications, informatique industrielle, transports, santé et défense.\nCompétences développées : conduite de projets informatiques, administration et sécurisation de réseaux, analyse de données, audits et valorisation des informations.",
+    recommendationUrl: 'pdfs/JM_Lettre_Recommandation_BTS_CIEL.pdf',
   },
   {
     title: 'Baccalauréat Général',
@@ -137,13 +140,29 @@ function renderEducation(containerId, list) {
   list.forEach(item => {
     const div = document.createElement('div');
     div.className = 'card';
+
+    const orbitalBtn = item.recommendationUrl
+      ? `
+      <a href="${item.recommendationUrl}" download class="orbital-btn" title="Télécharger la lettre de recommandation">
+        <div class="orbital-ring"></div>
+        <div class="orbital-ring orbital-ring-2"></div>
+        <span class="orbital-icon">📄</span>
+      </a>
+    `
+      : '';
+
     div.innerHTML = `
           <div class="header">
-            <strong>${item.title}</strong><br>
-            <small>${item.school} · ${item.period}</small>
+            <div class="header-content">
+              <div>
+                <strong>${item.title}</strong><br>
+                <small>${item.school} · ${item.period}</small>
+              </div>
+              ${orbitalBtn}
+            </div>
           </div>
           <p>${item.description}</p>
-  <p class="details">${item.details}</p>
+          <p class="details">${item.details}</p>
         `;
     container.appendChild(div);
   });
@@ -164,10 +183,25 @@ function renderList(containerId, list, type) {
         '<a href="$1" target="_blank" class="link">$1</a>'
       );
 
+      const orbitalBtn = item.recommendationUrl
+        ? `
+        <a href="${item.recommendationUrl}" download class="orbital-btn" title="Télécharger la lettre de recommandation">
+          <div class="orbital-ring"></div>
+          <div class="orbital-ring orbital-ring-2"></div>
+          <span class="orbital-icon">📄</span>
+        </a>
+      `
+        : '';
+
       div.innerHTML = `
     <div class="header">
-      <strong>${item.role}</strong><br>
-      <small>${item.company} · ${item.period}</small>
+      <div class="header-content">
+        <div>
+          <strong>${item.role}</strong><br>
+          <small>${item.company} · ${item.period}</small>
+        </div>
+        ${orbitalBtn}
+      </div>
     </div>
     <ul>
       ${item.bullets.map(b => `<li>${b}</li>`).join('')}
@@ -503,37 +537,6 @@ function initUniverse() {
   });
 }
 
-const modal = document.querySelector('.modal-content');
-
-modal.addEventListener(
-  'wheel',
-  e => {
-    // Vérifie si le contenu peut défiler
-    const delta = e.deltaY;
-    const up = delta < 0 && modal.scrollTop > 0;
-    const down = delta > 0 && modal.scrollTop + modal.clientHeight < modal.scrollHeight;
-
-    if (up || down) {
-      e.preventDefault(); // bloque le scroll de la page
-      modal.scrollTop += delta; // scroll du contenu
-    }
-    // sinon, on laisse la page défiler si le contenu est déjà en haut ou en bas
-  },
-  { passive: false }
-);
-
-document.body.classList.add('modal-open');
-document.body.classList.remove('modal-open');
-
-function openModal(name) {
-  const modal = document.getElementById(`modal-${name}`);
-  modal.style.display = 'block';
-  document.body.classList.add('modal-open');
-
-  const content = modal.querySelector('.modal-content');
-  content.focus(); // capte le scroll directement
-}
-
 ///////////////////////////////////////////////////
 const totalItems = 8;
 const itemHeight = 110;
@@ -551,35 +554,27 @@ let currentActiveContent = null;
 const documentData = {
   1: {
     title: 'Diplôme BTS CIEL',
-    preview: 'Exploration des nébuleuses et formations stellaires',
   },
   2: {
     title: 'Relevé de notes BTS CIEL',
-    preview: 'Analyse des trous noirs et distorsions spatiales',
   },
   3: {
     title: 'Bulletins BTS CIEL – 1ʳᵉ et 2ᵉ année',
-    preview: 'Catalogue des exoplanètes habitables',
   },
   4: {
     title: 'Lettres de Recommandations',
-    preview: 'Technologies de propulsion interstellaire',
   },
   5: {
     title: 'Baccalauréat général',
-    preview: "Cosmologie et origine de l'univers observable",
   },
   6: {
     title: 'CV fin BTS CIEL (19 ans)',
-    preview: "Cosmologie et origine de l'univers observable",
   },
   7: {
     title: 'Certification Cisco CCNA1',
-    preview: "Cosmologie et origine de l'univers observable",
   },
   8: {
     title: 'Attestation Hackathon NASA Space Apps Challenge',
-    preview: "Cosmologie et origine de l'univers observable",
   },
 };
 
@@ -921,8 +916,8 @@ function downloadDocument(docNumber) {
         name: 'JM_ReleveNotes_BTS_CIEL.pdf',
       },
       3: {
-        url: 'pdfs/xxx.pdf',
-        name: 'JM_Bulletins_2emeAnnee_BTS_CIEL.pdf',
+        url: 'pdfs/JM_Bulletins_BTS_CIEL.pdf',
+        name: 'JM_Bulletins_BTS_CIEL.pdf',
       },
       4: {
         url: 'pdfs/JM_Baccalaureat_general.pdf',

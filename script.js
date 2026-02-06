@@ -574,9 +574,20 @@ function displayPDF(e) {
           ((i.textContent = documentData[e].title), (i.style.opacity = '1'));
         }, 200),
         n.forEach(t => {
-          parseInt(t.dataset.case) === e
-            ? (t.classList.add('active'), (currentActiveContent = t))
-            : t.classList.remove('active');
+          if (parseInt(t.dataset.case) === e) {
+            if (!t.querySelector('iframe') && t.dataset.src) {
+              const iframe = document.createElement('iframe');
+              iframe.src = t.dataset.src;
+              iframe.width = '100%';
+              iframe.height = '100%';
+              iframe.style.border = 'none';
+              t.appendChild(iframe);
+            }
+            t.classList.add('active');
+            currentActiveContent = t;
+          } else {
+            t.classList.remove('active');
+          }
         }),
         s.forEach(t => {
           parseInt(t.dataset.case) === e ? t.classList.add('active') : t.classList.remove('active');

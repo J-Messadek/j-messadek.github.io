@@ -40,6 +40,7 @@
     />
     <meta name="twitter:image" content="https://j-messadek.github.io/img/banniere-satellite.png" />
 
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -801,12 +802,8 @@
         </section>
       </main>
       <!-- Ajoutez ce script AVANT votre script.js -->
-      <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-      <script>
-        // Initialisez avec votre clé publique EmailJS
-        emailjs.init('2rUzppZukh9rJ2eT_'); // À remplacer
-      </script>
-      <script src="script.js"></script>
+      <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js" onload="emailjs.init('2rUzppZukh9rJ2eT_')"></script>
+      <script defer src="script.js"></script>
 
       <footer>© 2025 J. M. · Entre codes et étoiles · Portfolio personnel</footer>
     </div>

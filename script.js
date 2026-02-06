@@ -183,6 +183,18 @@ document.addEventListener('DOMContentLoaded', () => {
       observer.observe(e);
     }));
 });
+const sectionPauseObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.remove('offscreen');
+    } else {
+      entry.target.classList.add('offscreen');
+    }
+  });
+}, { threshold: 0, rootMargin: '200px 0px 200px 0px' });
+document.querySelectorAll('section, .hero, .big-section, .hero-card, .orbit').forEach(el => {
+  sectionPauseObserver.observe(el);
+});
 const btn = document.getElementById('sliderButton'),
   cont = document.querySelector('.slider-track'),
   fill = document.getElementById('sliderFill'),
@@ -241,7 +253,17 @@ function hEnd() {
             (txt.style.transition = ''));
         }, 500)));
 }
+function pauseUniverse() {
+  universeRunning = false;
+  if (universeAnimId) { cancelAnimationFrame(universeAnimId); universeAnimId = null; }
+}
+function resumeUniverse() {
+  if (universeRunning) return;
+  universeRunning = true;
+  if (universeLoopFn) universeLoopFn();
+}
 function closeUniverse() {
+  pauseUniverse();
   (uniCont.classList.remove('show'),
     setTimeout(() => {
       ((uniCont.style.display = 'none'),
@@ -277,7 +299,11 @@ function enableUniverseScroll() {
         uniCont.removeEventListener('touchmove', e));
     }));
 }
+let universeInitialized = false, universeRunning = false, universeAnimId = null, universeIntervals = [], universeLoopFn = null;
 function initUniverse() {
+  if (universeInitialized) { resumeUniverse(); return; }
+  universeInitialized = true;
+  universeRunning = true;
   const e = document.getElementById('starsCanvas'),
     t = e.getContext('2d');
   function n() {
@@ -285,7 +311,7 @@ function initUniverse() {
   }
   (n(), window.addEventListener('resize', n));
   const s = [];
-  for (let t = 0; t < 265; t++)
+  for (let t = 0; t < 120; t++)
     s.push({
       x: Math.random() * e.width,
       y: Math.random() * e.height,
@@ -296,7 +322,8 @@ function initUniverse() {
       twinkleSpeed: 0.03 * Math.random() + 0.01,
     });
   const i = [];
-  setInterval(() => {
+  universeIntervals.push(setInterval(() => {
+    if (!universeRunning) return;
     Math.random() < 0.3 &&
       i.push({
         x: Math.random() * e.width,
@@ -306,9 +333,10 @@ function initUniverse() {
         angle: (Math.random() * Math.PI) / 6 + Math.PI / 6,
         opacity: 1,
       });
-  }, 3e3);
+  }, 3e3));
   const a = [];
-  (setInterval(() => {
+  universeIntervals.push(setInterval(() => {
+    if (!universeRunning) return;
     Math.random() < 0.15 &&
       a.push({
         x: Math.random() * e.width,
@@ -319,8 +347,9 @@ function initUniverse() {
         opacity: 1,
         size: 3,
       });
-  }, 8e3),
-    (function n() {
+  }, 8e3));
+    universeLoopFn = function loop() {
+      if (!universeRunning) { universeAnimId = null; return; }
       ((t.fillStyle = 'rgba(5, 10, 30, 0.15)'),
         t.fillRect(0, 0, e.width, e.height),
         s.forEach(n => {
@@ -394,22 +423,30 @@ function initUniverse() {
             t.lineTo(n.x - Math.cos(n.angle) * n.length, n.y - Math.sin(n.angle) * n.length),
             t.stroke());
         }),
-        requestAnimationFrame(n));
-    })());
+        universeAnimId = requestAnimationFrame(loop));
+    };
+    universeLoopFn();
   let o = 0,
-    r = 0;
+    r = 0,
+    mouseMoveFrame = null;
   document.addEventListener('mousemove', e => {
-    ((o = e.clientX),
-      (r = e.clientY),
+    if (!universeRunning) return;
+    o = e.clientX;
+    r = e.clientY;
+    if (mouseMoveFrame) return;
+    mouseMoveFrame = requestAnimationFrame(() => {
       s.forEach(e => {
         const t = o - e.x,
           n = r - e.y,
           s = Math.sqrt(t * t + n * n);
         if (s < 100) {
           const i = (100 - s) / 100;
-          ((e.x += t * i * 0.02), (e.y += n * i * 0.02));
+          e.x += t * i * 0.02;
+          e.y += n * i * 0.02;
         }
-      }));
+      });
+      mouseMoveFrame = null;
+    });
   });
   const l = document.querySelectorAll('.planet');
   let c = null;
@@ -594,39 +631,48 @@ function displayPDF(e) {
         }));
     }, 600));
 }
+let menuVisible = false;
+const menuObserver = new IntersectionObserver(entries => {
+  menuVisible = entries[0].isIntersecting;
+  if (menuVisible && !animationId) animate();
+}, { threshold: 0.1 });
+const visionSection = document.querySelector('.vision_pdfs');
+if (visionSection) menuObserver.observe(visionSection);
+
 function animate() {
+  if (!menuVisible) { animationId = null; return; }
   ((currentY += (targetY - currentY) * (isAnimatingToCase ? 0.08 : 0.15)),
     !isDragging &&
       !isAnimatingToCase &&
       Math.abs(velocity) > 0.1 &&
       ((targetY += velocity), (velocity *= 0.95)));
-  const e = totalItems * itemHeight,
-    t = document.getElementById('menuContainer');
+  const e = totalItems * itemHeight;
   if (currentY >= 2 * e) {
     ((currentY -= e),
       (targetY -= e),
-      t.classList.add('no-transition'),
-      setTimeout(() => t.classList.remove('no-transition'), 10));
+      cachedMenuContainer.classList.add('no-transition'),
+      setTimeout(() => cachedMenuContainer.classList.remove('no-transition'), 10));
   } else if (currentY < e) {
     ((currentY += e),
       (targetY += e),
-      t.classList.add('no-transition'),
-      setTimeout(() => t.classList.remove('no-transition'), 10));
+      cachedMenuContainer.classList.add('no-transition'),
+      setTimeout(() => cachedMenuContainer.classList.remove('no-transition'), 10));
   }
   (updatePosition(),
     updateActiveItem(),
     updateCounter(),
     (animationId = requestAnimationFrame(animate)));
 }
+const cachedMenuContainer = document.getElementById('menuContainer');
 function updatePosition() {
-  const e = document.getElementById('menuContainer'),
-    t = -currentY + centerOffset;
-  e.style.transform = `translateY(${t}px)`;
+  const t = -currentY + centerOffset;
+  cachedMenuContainer.style.transform = `translateY(${t}px)`;
 }
+let cachedMenuItems = null;
 function updateActiveItem() {
-  const e = document.querySelectorAll('.menu-item'),
-    t = currentY;
-  e.forEach(e => {
+  if (!cachedMenuItems) cachedMenuItems = document.querySelectorAll('.menu-item');
+  const t = currentY;
+  cachedMenuItems.forEach(e => {
     const n = e.offsetTop + e.offsetHeight / 2,
       s = Math.abs(n - (t + 50));
     s < 55
@@ -636,10 +682,11 @@ function updateActiveItem() {
         : e.classList.remove('center', 'side');
   });
 }
+const cachedCurrentNumber = document.getElementById('currentNumber');
 function updateCounter() {
   const e = mod(Math.round(currentY / itemHeight), totalItems),
     t = documentData[e + 1].title;
-  document.getElementById('currentNumber').textContent = t;
+  cachedCurrentNumber.textContent = t;
 }
 function snapToNearest() {
   const e = Math.round(targetY / itemHeight) * itemHeight;
@@ -855,6 +902,7 @@ const observer2 = new MutationObserver(e => {
         document.getElementById('prenom').value + ' ' + document.getElementById('nom').value,
       from_email: document.getElementById('email').value,
       subject: document.getElementById('sujet').value,
+      _subject: document.getElementById('sujet').value,
       message: document.getElementById('message').value,
       to_email: 'j.messadek@proton.me',
     };
